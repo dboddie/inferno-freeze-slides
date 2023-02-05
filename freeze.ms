@@ -32,17 +32,17 @@ Today, microcontrollers with several hundred kilobytes of RAM and flash memory c
 .SH
 Challenges
 .LP
-The first challenge a port to a microcontroller faces is the availability of a compiler. In this case, the Thumb compiler was retrieved from the commit history of the Inferno repository and updated slightly. Beyond this, the two main challenges are the amounts of flash memory and RAM available to use.
+The first challenge a port to a microcontroller faces is the availability of a compiler. In this case [8], the Thumb compiler was retrieved from the commit history of the Inferno repository and updated slightly. Beyond this, the two main challenges are the amounts of flash memory and RAM available to use.
 
 The amount of flash memory constrains the size of the operating system and limits the features it can include. In the worst case it may not even be possible to fit a system into the space available. Around 256 KB may be required for a minimal set of features, so the target under discussion has plenty of space for a reasonable system.
 
-The amount of RAM, however, is more limiting. Most Inferno systems tend to run in several megabytes of RAM, and many are copied into RAM on boot-up. Although it was found [5] that 512 KB could be enough to run a useful system if the kernel is run from flash memory, problems can still occur when memory allocation occurs in the running system. In the case of the STM32 target hardware this can manifest in heap allocation errors when trying to run programs.
+The amount of RAM, however, is more limiting. Most Inferno systems tend to run in several megabytes of RAM, and many are copied into RAM on boot-up. Although it was found [5] that 512 KB could be enough to run a useful system if the kernel is run from flash memory, problems can still occur when memory allocation occurs in the running system. In the case of the STM32 target hardware these problems appear in the form of heap allocation errors when trying to run programs.
 
-There are two obvious strategies for dealing with the shortage of RAM:
+There are two obvious strategies for dealing with the shortage of RAM in this case:
 .IP 1.
 Reduce the amount used by the operating system to begin with.
 .IP 2.
-Reduce the amount of memory requested when loading Limbo modules in the form of
+Reduce the amount of memory requested when loading Limbo [9] modules in the form of
 .CW ".dis"
 files.
 .
@@ -54,7 +54,7 @@ One strategy for dealing with the shortage of RAM suggested itself when investig
 .SH
 Loading Limbo modules
 .LP
-When the Dis virtual machine [8] loads a Limbo module from a file, it performs a number of steps:
+When the Dis virtual machine [10] loads a Limbo module from a file, it performs a number of steps:
 .
 .IP 1.
 In the
@@ -69,9 +69,9 @@ The
 .CW "parsemod"
 function checks for a suitable magic number at the start of the data, returning if unsuccessful.
 .IP 3.
-Each section in the module data is decoded and the required amount of memory to  represent it is allocated. The first section contains code, which is decoded and expanded into a sequence of
+Each section in the module data is decoded and the amount of memory required to represent it is allocated. The first section contains code, which is decoded and expanded into a sequence of
 .CW Inst
-structures that is suitable for execution.
+structures suitable for execution.
 .IP 4.
 The members of the
 .CW Module
@@ -102,7 +102,7 @@ and the path of the original file within the root file system, allowing the virt
 At run-time, the virtual machine recognizes a frozen module by its magic number,
 causing it to divert control to the
 .CW loadfrozen
-function, which looks up the address of the frozen data using the path encoded in the file. If found, the frozen data is processed in much the same way as a regular module, except that the address of the code is used as-is, and the
+function, which looks up the address of the frozen data using the path encoded in the file. If frozen data is found, it is processed in much the same way as regular module data, except that the address of the code in flash memory is used unchanged, and the
 .CW frozen
 flag is set in the
 .CW Module
@@ -126,7 +126,7 @@ suffix:
 These intermediate files are created and read by the
 .CW mkroot
 script as normal.
-
+.
 .SH
 Issues with freezing code and other data
 .LP
@@ -142,22 +142,28 @@ function about where the instructions are stored. Checks for the module's
 .CW frozen
 flag were used to work around issues like these.
 
-Experiments with freezing other sections of modules were only partially successful. As with frozen code, problems occur when data structures created by the loader are assumed to be managed by the allocator. An analysis of how each section is used by the virtual machine is needed to ensure that there are no surprises at run-time. A minimal approach that only freezes instructions offers most of the benefits of the technique with relatively few changes to the surrounding virtual machine.
-
+Experiments with freezing other sections of modules were only partially successful. As with frozen code, problems occur when data structures created by the loader are assumed to be managed by the allocator. An analysis of how each section is used by the virtual machine is needed to ensure that there are no surprises at run-time. Some sections are less amenable to freezing than others, with potential savings being only slight for those sections that only contain small amounts of data. A minimal approach that only freezes instructions offers most of the benefits of the technique with relatively few changes to the surrounding virtual machine.
+.
 .SH
 Summary of memory savings
 .LP
 The use of frozen modules results in two main ways in which memory usage is reduced. The obvious one is the lack of a need to allocate memory for instructions at run-time. Additional savings are made by the use of placeholder files to represent frozen modules instead of including full-size module files in the root file system, leading to smaller allocations when reading them.
 
-A side effect of the use of placeholder files is the reduction in the size of the root filing system itself. Since this data is copied into RAM in this port, moving the contents of modules into the text section means that only references to them in the root file system use up RAM. This means that using frozen modules also reduces the initial RAM requirements of the system. A different approach to handling immutable data would lead to similar benefits for all kinds of data, making this particular benefit obsolete.
-
+A side effect of the use of placeholder files is the reduction in the size of the root filing system itself. Since this data is copied into RAM in this port, moving the contents of modules into the text section of the kernel means that only references to them in the root file system use up RAM. This means that using frozen modules also reduces the initial RAM requirements of the system. A different approach to handling immutable data would lead to similar benefits for all kinds of data, making this particular benefit obsolete.
+.
 .SH
-Conclusion
+Conclusion and future work
 .LP
-The work described above shows how a fairly simple change to the Limbo module loader can reduce the size of memory allocations at run-time and reduce the overall memory footprint of an embedded Inferno system. By using a simple technique, immediate improvements
+The work described above shows how a conceptually simple approach, supported by small changes to the Limbo module loader in the virtual machine, can reduce the size of memory allocations at run-time and reduce the overall memory footprint of an embedded Inferno system.
 
+Further improvements could be made by applying the same approach to other sections of modules, where applicable, noting that further memory savings may be smaller than those already obtained.
 
+It may be possible to extend the technique to compile virtual machine code to native machine code ahead of time. This approach may work well for devices with slow processors and reasonable amounts of flash memory, and could be used as an alternative to just-in-time (JIT) compilation for frequently used modules.
 
+The source code associated with this paper can be found in the following repository:
+.br
+https://github.com/dboddie/inferno-os/tree/stm32f405
+.
 .SH
 References
 .IP 1.
@@ -177,13 +183,13 @@ https://www.vitanuova.com/inferno/papers/bltj.pdf
 .
 .IP 2.
 ``Lucent brews Inferno'',
-.I "InfoWorld, October 1996"
+.I "InfoWorld," October 1996
 .br
 https://www.infoworld.com/article/2077261/lucent-brews-inferno.html
 .
 .IP 3.
 Vita Nuova, ``Inferno Ports: Hosted and Native'',
-.I "Vita Nuova, 27 April 2005"
+.I "Vita Nuova Limited," 27 April 2005
 .br
 https://www.vitanuova.com/inferno/papers/port.pdf
 .
@@ -201,7 +207,7 @@ http://8e.iwp9.org/sunspot.pdf
 .
 .IP 6.
 Petter Duus Berven, ``Porting Inferno OS to ARMv7-M and Cortex-M7'',
-.I "Master's thesis in Computer Science, January 2022"
+.I "Master's thesis in Computer Science," January 2022
 .br
 https://hdl.handle.net/11250/3034870
 .
@@ -217,6 +223,16 @@ STMicroelectronics, ``STM32F405xx STM32F407xx Datasheet'',
 https://www.st.com/en/microcontrollers-microprocessors/stm32f405rg.html
 .
 .IP 8.
+https://github.com/dboddie/inferno-os/tree/stm32f405
+.
+.IP 9.
+Dennis M. Ritchie, ``The Limbo Programming Language'',
+.I "Inferno Programmer's Manual, Volume Two, Vita Nuova," 2005
+.br
+https://www.vitanuova.com/inferno/papers/limbo.pdf
+.IP 10.
 Lucent Technologies Inc, Vita Nuova Limited, ``Dis Virtual Machine Specification'',
+.I "Lucent Technologies," 1999,
+.I "Vita Nuova Limited", 2003"
 .br
 https://www.vitanuova.com/inferno/papers/dis.pdf
