@@ -1,25 +1,25 @@
 .\" Disable page numbers in the ms macros.
 .ds CH
-.\"
 .nr PS 9
 .fam P
-.ps 10
-.TL
-.pc
-Hell freezes over
+.ps 11
+.ce 9999
+.B "Hell freezes over"
 .br
 .ps 9
 .B "Freezing Limbo modules to reduce Inferno's memory footprint"
-.AU
-.ps 9
-David Boddie
-david@boddie.org.uk
-.AB
+.sp 9p
+.I "David Boddie"
+.I "david@boddie.org.uk"
+.sp 12p
+.ce
+ABSTRACT
+.sp 10p
 .in 0.5i
 .ll 5.5i
-.ps 9
 While Inferno is capable of running on systems with a modest amount of memory, it is sometimes useful to be able to reduce the memory footprint of the running system. This is particularly true of embedded systems with only a few hundred kilobytes of RAM. This paper explores an approach where Dis virtual machine code is retained (``frozen'') in flash memory instead of being loaded into precious RAM.
-.AE
+
+.sp 4p
 .SH
 Introduction
 .LP
@@ -27,7 +27,7 @@ Inferno was designed to have minimal hardware requirements, with a stated baseli
 .
 .\"Today, a system on a chip (SoC) with hundreds of megabytes of RAM and flash memory can be inexpensively obtained from any of the major silicon vendors. Inferno has already been ported to the original Raspberry Pi [3] architecture, and there are many other opportunities for running native Inferno on similarly capable hardware.
 
-Today, microcontrollers with several hundred kilobytes of RAM and flash memory can be obtained. For example, microcontrollers using cores in the ARM Cortex-M4 series can be found with up to 256 KB of RAM, and those in the Cortex-M7 series can be found with 1 MB or more, making them potential targets for Inferno ports [6]. The discussion below focuses on targets at the lower end of this range, specifically the STM32F405RGT6 microcontroller [7] which has 192 KB of RAM and 1 MB of flash memory.
+Today, microcontrollers with several hundred kilobytes of RAM and flash memory can be readily obtained. For example, microcontrollers using cores in the ARM Cortex-M4 series can be found with up to 256 KB of RAM, and those in the Cortex-M7 series can be found with 1 MB or more, making them potential targets for Inferno ports [6]. The discussion below focuses on targets at the lower end of this range, specifically the STM32F405RGT6 microcontroller [7] which has 192 KB of RAM and 1 MB of flash memory.
 .
 .SH
 Challenges
@@ -89,9 +89,9 @@ Support for frozen modules requires three things: a tool to create frozen module
 
 A
 .CW freeze
-tool was created to perform the task of reading an existing module file and writing data structures that can be compiled into the operating system. Reusing code from the virtual machine the tool decodes the instructions in the module's code section, ready to be executed at run-time, but writes the other sections in their original form for the virtual machine to handle in the usual way.
+tool was created to perform the task of reading an existing module file and writing data structures that can be compiled into the operating system. Reusing code from the virtual machine, the tool decodes the instructions in the module's code section, ready to be executed at run-time, but writes the other sections in their original form for the virtual machine to handle in the usual way.
 
-The necessary patching of code might appear to be a problem. However, the address of frozen code is fixed at build-time, allowing the branch addresses to be pre-calculated, and avoiding any need to modify the instructions at run-time.
+The necessary patching of code might appear to be a problem. However, the address of frozen code is fixed at build-time, allowing the branch addresses to be pre-calculated and avoiding any need to modify the instructions at run-time. Each sequence of instructions is represented by a sequence of 32-bit words written in assembly language. Branches within the code are represented as references to offsets from the start of each sequence.
 
 Another purpose of the
 .CW freeze
@@ -102,7 +102,7 @@ and the path of the original file within the root file system, allowing the virt
 At run-time, the virtual machine recognizes a frozen module by its magic number,
 causing it to divert control to the
 .CW loadfrozen
-function, which looks up the address of the frozen data using the path encoded in the file. If frozen data is found, it is processed in much the same way as regular module data, except that the address of the code in flash memory is used unchanged, and the
+function which looks up the address of the frozen data using the path encoded in the file. If frozen data is found, it is processed in much the same way as regular module data, except that the address of the code in flash memory is used unchanged and the
 .CW frozen
 flag is set in the
 .CW Module
@@ -126,7 +126,7 @@ suffix:
 These intermediate files are created and read by the
 .CW mkroot
 script as normal.
-.
+
 .SH
 Issues with freezing code and other data
 .LP
@@ -149,7 +149,7 @@ Summary of memory savings
 .LP
 The use of frozen modules results in two main ways in which memory usage is reduced. The obvious one is the lack of a need to allocate memory for instructions at run-time. Additional savings are made by the use of placeholder files to represent frozen modules instead of including full-size module files in the root file system, leading to smaller allocations when reading them.
 
-A side effect of the use of placeholder files is the reduction in the size of the root filing system itself. Since this data is copied into RAM in this port, moving the contents of modules into the text section of the kernel means that only references to them in the root file system use up RAM. This means that using frozen modules also reduces the initial RAM requirements of the system. A different approach to handling immutable data would lead to similar benefits for all kinds of data, making this particular benefit obsolete.
+A side effect of the use of placeholder files is the reduction in the size of the root filing system itself. Since this data is copied into RAM in the STM32 port, moving the contents of modules into the text section of the kernel means that only references to them in the root file system use up RAM. This means that using frozen modules also reduces the initial RAM requirements of the system. A different approach to handling immutable data would lead to similar benefits for all kinds of data, making this particular benefit obsolete.
 .
 .SH
 Conclusion and future work
@@ -162,7 +162,7 @@ It may be possible to extend the technique to compile virtual machine code to na
 
 The source code associated with this paper can be found in the following repository:
 .br
-https://github.com/dboddie/inferno-os/tree/stm32f405
+.I https://github.com/dboddie/inferno-os/tree/stm32f405
 .
 .SH
 References
@@ -177,39 +177,44 @@ P. Winterbottom,
 .I "Bell Labs Technical Journal" ,
 Vol. 2,
 No. 1,
-Winter 1997, pp. 5-18.
+Winter 1997, pp. 5-18
 .br
-https://www.vitanuova.com/inferno/papers/bltj.pdf
+.I https://www.vitanuova.com/inferno/papers/bltj.pdf
 .
 .IP 2.
 ``Lucent brews Inferno'',
-.I "InfoWorld," October 1996
+.I "InfoWorld" ,
+October 1996
 .br
-https://www.infoworld.com/article/2077261/lucent-brews-inferno.html
+.I https://www.infoworld.com/article/2077261/lucent-brews-inferno.html
 .
 .IP 3.
 Vita Nuova, ``Inferno Ports: Hosted and Native'',
-.I "Vita Nuova Limited," 27 April 2005
+.I "Vita Nuova Limited" ,
+27 April 2005
 .br
-https://www.vitanuova.com/inferno/papers/port.pdf
+.I https://www.vitanuova.com/inferno/papers/port.pdf
 .
 .IP 4.
 Salva Peiró, ``Inferno DS: Inferno port to the Nintendo DS'',
-.I "3\*{rd\*} International Workshop on Plan 9"
+.I "3\*{rd\*} International Workshop on Plan 9" ,
+University of Thessaly, Volos, Greece, 2008,
 .br
-http://3e.iwp9.org/iwp9_proceedings08.pdf
+.I http://3e.iwp9.org/iwp9_proceedings08.pdf
 .
 .IP 5.
 Brian L. Stuart, ``Inferno in Embedded Space: Porting to the Sun SPOT'',
-.I "8\*{th\*} International Workshop on Plan 9"
+.I "8\*{th\*} International Workshop on Plan 9" ,
+Athens, Georgia, USA, 2013,
 .br
-http://8e.iwp9.org/sunspot.pdf
+.I http://8e.iwp9.org/sunspot.pdf
 .
 .IP 6.
 Petter Duus Berven, ``Porting Inferno OS to ARMv7-M and Cortex-M7'',
-.I "Master's thesis in Computer Science," January 2022
+.I "Master's thesis in Computer Science" ,
+Norwegian University of Science and Technology (NTNU), January 2022
 .br
-https://hdl.handle.net/11250/3034870
+.I https://hdl.handle.net/11250/3034870
 .
 .\".IP 6.
 .\"Lynxline,
@@ -220,19 +225,22 @@ https://hdl.handle.net/11250/3034870
 .IP 7.
 STMicroelectronics, ``STM32F405xx STM32F407xx Datasheet'',
 .br
-https://www.st.com/en/microcontrollers-microprocessors/stm32f405rg.html
+.I https://www.st.com/en/microcontrollers-microprocessors/stm32f405rg.html
 .
 .IP 8.
-https://github.com/dboddie/inferno-os/tree/stm32f405
+.I https://github.com/dboddie/inferno-os/tree/stm32f405
 .
 .IP 9.
 Dennis M. Ritchie, ``The Limbo Programming Language'',
-.I "Inferno Programmer's Manual, Volume Two, Vita Nuova," 2005
+.I "Inferno Programmer's Manual, Volume Two, Vita Nuova" ,
+2005
 .br
-https://www.vitanuova.com/inferno/papers/limbo.pdf
+.I https://www.vitanuova.com/inferno/papers/limbo.pdf
 .IP 10.
 Lucent Technologies Inc, Vita Nuova Limited, ``Dis Virtual Machine Specification'',
-.I "Lucent Technologies," 1999,
-.I "Vita Nuova Limited", 2003"
+.I "Lucent Technologies" ,
+1999,
+.I "Vita Nuova Limited" ,
+2003
 .br
-https://www.vitanuova.com/inferno/papers/dis.pdf
+.I https://www.vitanuova.com/inferno/papers/dis.pdf
