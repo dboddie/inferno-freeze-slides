@@ -4,7 +4,7 @@
 .fam P
 .ps 11
 .ce 9999
-.B "Hell Freezes Over"
+.B "Hell Freezes Over:"
 .br
 .ps 9
 .B "Freezing Limbo modules to reduce Inferno's memory footprint"
@@ -116,14 +116,14 @@ tool and build the generated code. The kernel's
 .CW main
 function was updated to call a function to register the frozen modules with the virtual machine. The modules to be frozen are specified in the root section of the configuration file, using sources that end with the
 .CW ".fdis"
-suffix:
+suffix, as in these examples:
 .sp
 .CW "        /dis/env.dis    /dis/env.fdis"
 .br
 .CW "        /dis/ls.dis     /dis/tiny/ls.fdis"
 
 .LP
-These intermediate files are created and read by the
+These intermediate files are created then processed by the
 .CW mkroot
 script as normal.
 
@@ -142,14 +142,14 @@ function about where the instructions are stored. Checks for the module's
 .CW frozen
 flag were used to work around issues like these.
 
-Experiments with freezing other sections of modules were only partially successful. As with frozen code, problems occur when data structures created by the loader are assumed to be managed by the allocator. An analysis of how each section is used by the virtual machine is needed to ensure that there are no surprises at run-time. Some sections are less amenable to freezing than others, with potential savings being only slight for those sections that only contain small amounts of data. A minimal approach that only freezes instructions offers most of the benefits of the technique with relatively few changes to the surrounding virtual machine.
+Experiments with freezing other sections of modules were only partially successful. As with frozen code, problems occur when data structures created by the loader are assumed to be managed by the allocator. An analysis of how each section is used by the virtual machine is needed to ensure that there are no surprises at run-time. Some sections are less amenable to freezing than others, with potential savings being only slight for those sections that contain only small amounts of data. A minimal approach that only freezes instructions offers most of the benefits of the technique with relatively few changes to the surrounding virtual machine.
 .
 .SH
 Summary of memory savings
 .LP
 The use of frozen modules results in two main ways in which memory usage is reduced. The obvious one is the lack of a need to allocate memory for instructions at run-time. Additional savings are made by the use of placeholder files to represent frozen modules instead of including full-size module files in the root file system, leading to smaller allocations when reading them.
 
-A side effect of the use of placeholder files is the reduction in the size of the root filing system itself. Since this data is copied into RAM in the STM32 port, moving the contents of modules into the text section of the kernel means that only references to them in the root file system use up RAM. This means that using frozen modules also reduces the initial RAM requirements of the system. A different approach to handling immutable data would lead to similar benefits for all kinds of data, making this particular benefit obsolete.
+A side effect of the use of placeholder files is the reduction in the size of the root file system itself. Since this data is copied into RAM in the STM32 port, moving the contents of modules into the text section of the kernel means that only references to them in the root file system use up RAM. This means that using frozen modules also reduces the initial RAM requirements of the system. A different approach to handling immutable data would lead to similar benefits for all kinds of data, making this particular benefit obsolete.
 .
 .SH
 Conclusion and future work
@@ -198,14 +198,14 @@ Vita Nuova, ``Inferno Ports: Hosted and Native'',
 .IP 4.
 Salva Peiró, ``Inferno DS: Inferno port to the Nintendo DS'',
 .I "3\*{rd\*} International Workshop on Plan 9" ,
-University of Thessaly, Volos, Greece, 2008,
+University of Thessaly, Volos, Greece, 2008
 .br
 .I http://3e.iwp9.org/iwp9_proceedings08.pdf
 .
 .IP 5.
 Brian L. Stuart, ``Inferno in Embedded Space: Porting to the Sun SPOT'',
 .I "8\*{th\*} International Workshop on Plan 9" ,
-Athens, Georgia, USA, 2013,
+Athens, Georgia, USA, 2013
 .br
 .I http://8e.iwp9.org/sunspot.pdf
 .
@@ -223,11 +223,16 @@ Norwegian University of Science and Technology (NTNU), January 2022
 .\"http://lynxline.com/porting-inferno-os-to-raspberry-pi/
 .
 .IP 7.
-STMicroelectronics, ``STM32F405xx STM32F407xx Datasheet'',
+``STM32F405xx STM32F407xx Datasheet'',
+.I STMicroelectronics ,
+2020
 .br
 .I https://www.st.com/en/microcontrollers-microprocessors/stm32f405rg.html
 .
 .IP 8.
+David Boddie, ``STM32F405 Port of Inferno'',
+accessed on 8 February 2023
+.br
 .I https://github.com/dboddie/inferno-os/tree/stm32f405
 .
 .IP 9.
