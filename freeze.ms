@@ -4,7 +4,7 @@
 .fam P
 .ps 11
 .ce 9999
-.B "Hell freezes over"
+.B "Hell Freezes Over"
 .br
 .ps 9
 .B "Freezing Limbo modules to reduce Inferno's memory footprint"
