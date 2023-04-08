@@ -1,0 +1,70 @@
+body {
+    background-color: #f0e0d0;
+    font-size: 24pt;
+    font-family: Lato Light;
+}
+
+h1 {
+    margin-bottom: 10pt;
+    font-family: Lato Semibold;
+    font-weight: normal;
+    font-size: 40pt;
+    text-align: center
+}
+
+h2 {
+    font-size: 28pt;
+    font-family: Lato Semibold;
+    font-weight: normal;
+    text-align: center
+}
+
+.subtitle {
+    margin-top: 0;
+    font-family: Lato Medium;
+    font-weight: normal;
+    font-size: 24pt;
+    text-align: center
+}
+
+.author {
+    margin-top: 20pt;
+    font-size: 20pt;
+    text-align: center
+}
+
+.slide {
+    padding: 20pt 44pt 20pt 44pt;
+    break-after: page;
+}
+
+tt {
+    padding: 2pt;
+    font-family: Noto Mono;
+    font-size: 0.9em
+}
+
+a {
+    color: #2020ff;
+    text-decoration-thickness: 1pt
+}
+
+pre {
+    font-size: 0.8em;
+    background-color: white;
+    margin: 0 20pt 0 20pt;
+    padding: 5pt 10pt 5pt 10pt
+}
+
+@media print {
+    @page {
+        size: a4 landscape;
+        margin: 0pt
+    }
+}
+
+@media screen {
+    .slide {
+        border-top: 1px solid #808080
+    }
+}

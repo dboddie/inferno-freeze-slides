@@ -1,0 +1,216 @@
+<html>
+<head>
+<title>Hell Freezes Over</title>
+<link rel="stylesheet" type="text/css" href="slides.css" />
+</head>
+
+<body>
+  <div class="slide">
+  <h1>Hell Freezes Over</h1>
+  <div class="subtitle">Freezing Limbo modules to reduce Inferno's memory footprint</div>
+
+  <div class="author">David Boddie &lt;<a href="mailto:david@boddie.org.uk">david@boddie.org.uk</a>&gt;</div>
+</div>
+
+<div class="slide">
+  <h2>About me</h2>
+
+  <p>Background:</p>
+  <ul>
+  <li>Physics/Astronomy/Mathematics not Computer Science/Engineering</li>
+  <li>Technical Writer/Developer</li>
+  </ul>
+
+  <p>Interest in Inferno:</p>
+  <ul>
+  <li>Interested from a historical perspective</li>
+  <li>Then wanted to try using something other than Linux</li>
+  <li>Now mostly trying to port Inferno to different devices</li>
+  </ul>
+</div>
+
+<div class="slide">
+<h2>Context</h2>
+
+<p>Small devices:</p>
+
+<ul>
+<li>Some flash memory, not much RAM</li>
+<li>Examples:
+  <ul>
+  <li><a href="https://www.st.com/en/microcontrollers-microprocessors/stm32f405-415.html">STM32F405</a> &ndash; Cortex-M4</li>
+  <li><a href="https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html">RP2040</a> &ndash; Cortex-M0+</li>
+  </ul>
+</li>
+<li>Both use the Thumb-2 instruction set</li>
+</ul>
+<p>We'll talk about the STM32 MCU.</p>
+</div>
+
+<div class="slide">
+<h2>Aside</h2>
+
+<ul>
+<li>Compiler: <tt>tc</tt>
+<li>Assembler: <tt>5a</tt>
+<li>Linker: <tt>tl</tt></li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Problem</h2>
+
+<p>Two issues:</p>
+<ol>
+<li>A lot of data is copied into RAM</li>
+<li>Loading a Limbo module has an overhead</li>
+</ol>
+
+<p>Thoughts:</p>
+<ul>
+<li>Not much we can do about issue 1
+  <ul>
+  <li>Modify the compiler and linker</li>
+  <li>Use a custom allocator?</li>
+  </ul>
+</li>
+<li>Issue 2 might be worth exploring</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Limbo modules</h2>
+
+Dis files contain
+<ul>
+<li>Magic number</li>
+<li>Code</li>
+<li>Types</li>
+<li>Data</li>
+<li>Links</li>
+<li>Imports</li>
+<li>Handlers</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Loading Limbo modules</h2>
+
+<ul>
+<li>Allocate RAM for a Dis file (<tt>readmod.c</tt>) and load it (<tt>load.c</tt>)</li>
+<li>Decode each section of the file
+  <ul>
+  <li>This involves allocating RAM for data structures</li>
+  </ul>
+</li>
+<li>Free the RAM containing the file data</li>
+</ul>
+
+Result is a <tt>Module</tt> struct with pointers to allocated memory.
+</div>
+
+<div class="slide">
+<h2>Code</h2>
+
+<p>Just instructions, non-self-modifying</p>
+
+<pre>
+; disdump dis/pause.dis
+newcw     , $0, 44(fp)
+recv      44(fp), 40(fp)
+movp      0(mp), 44(fp)
+ret
+</pre>
+
+<p>Why not move them into flash memory?</p>
+</div>
+
+<div class="slide">
+<h2>Why not move them into flash memory?</h2>
+
+<p>Decoding the Dis file expands the instructions</p>
+
+<ul>
+<li>So need to expand them at compile-time (or convert them later)</li>
+<li>Then compile them into the kernel as read-only data</li>
+</ul>
+
+<!-- pre
+TEXT _dis_pause_inst(SB), 0, $-4
+// 13 59 0000 00000000 0000002c
+WORD $0x00005913
+WORD $0x00000000
+WORD $0x0000002c
+// 19 09 0000 0000002c 00000028
+WORD $0x00000919
+WORD $0x0000002c
+WORD $0x00000028
+// 29 01 0000 00000000 0000002c
+WORD $0x00000129
+WORD $0x00000000
+WORD $0x0000002c
+// 0c 1b 0000 00000000 00000000
+WORD $0x00001b0c
+WORD $0x00000000
+WORD $0x00000000
+/pre -->
+
+<p>The loader patches the instructions as it creates <tt>Inst</tt> structures</p>
+
+<ul>
+<li>The compiler can't know where the Inst structures will be in memory at run-time</li>
+<li>But we can decide where in flash memory to put them</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Two practical problems</h2>
+
+<ul>
+<li>How to convert Dis files?</li>
+<li>How to tell the interpreter which files are "frozen" and which are normal?</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>How to convert Dis files</h2>
+
+<ul>
+<li>There is already code to do this in the loader</li>
+<li>What do we put in the root file system?
+  <ul>
+  <li>Could put just the code section for a Dis file in the kernel</li>
+  <li>Easier to put the whole file in the kernel</li>
+  <li>Leave a placeholder in the root file system</li>
+  </ul>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Which files are "frozen" and which are normal?</h2>
+
+<ul>
+<li>Use a different magic number</li>
+<li>Change the loader to do something different</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Glue</h2>
+
+<ul>
+<li>Converted Dis files in the kernel</li>
+<li>Placeholder files in the root file system</li>
+<li>Interpreter loads a placeholder file</li>
+<li></li>
+</ul>
+<p>Still need to tell
+</div>
+
+<div class="slide">
+<h2>Thanks</h2>
+
+<ul>
+<li>Charles Forsyth for compiler hints and tips</li>
+<li>Michael Engel for discussions about microcontrollers</li>
+</ul>
