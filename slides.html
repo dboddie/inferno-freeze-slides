@@ -5,28 +5,31 @@
 </head>
 
 <body>
-  <div class="slide">
-  <h1>Hell Freezes Over</h1>
-  <div class="subtitle">Freezing Limbo modules to reduce Inferno's memory footprint</div>
+<div class="slide">
+    <div class="title-block">
+    <h1>Hell Freezes Over</h1>
+    <div class="subtitle">Freezing Limbo modules to reduce Inferno's memory footprint</div>
 
-  <div class="author">David Boddie &lt;<a href="mailto:david@boddie.org.uk">david@boddie.org.uk</a>&gt;</div>
+    <div class="author">David Boddie &lt;<a href="mailto:david@boddie.org.uk">david@boddie.org.uk</a>&gt;</div>
+    <div class="author"><a href="https://www.boddie.org.uk/david">https://www.boddie.org.uk/david</a></div>
+    </div>
 </div>
 
 <div class="slide">
-  <h2>About me</h2>
+<h2>About me</h2>
 
-  <p>Background:</p>
-  <ul>
-  <li>Physics/Astronomy/Mathematics not Computer Science/Engineering</li>
-  <li>Technical Writer/Developer</li>
-  </ul>
+<p>Background:</p>
+<ul>
+<li>Physics/Astronomy/Mathematics not Computer Science/Engineering</li>
+<li>Technical Writer/Developer</li>
+</ul>
 
-  <p>Interest in Inferno:</p>
-  <ul>
-  <li>Interested from a historical perspective</li>
-  <li>Then wanted to try using something other than Linux</li>
-  <li>Now mostly trying to port Inferno to different devices</li>
-  </ul>
+<p>Interest in Inferno:</p>
+<ul>
+<li>Interested from a historical perspective</li>
+<li>Then wanted to try using something other than Linux</li>
+<li>Now mostly trying to port Inferno to different devices</li>
+</ul>
 </div>
 
 <div class="slide">
@@ -97,10 +100,15 @@ Dis files contain
 <h2>Loading Limbo modules</h2>
 
 <ul>
-<li>Allocate RAM for a Dis file (<tt>readmod.c</tt>) and load it (<tt>load.c</tt>)</li>
-<li>Decode each section of the file
+<li><tt>readmod()</tt> in <tt>libinterp/readmod.c</tt>:
   <ul>
-  <li>This involves allocating RAM for data structures</li>
+  <li>Allocate RAM for the contents of a Dis file</li>
+  <li><tt>parsemod()</tt> in <tt>libinterp/load.c</tt>:
+    <ul>
+    <li>Decode each section of the file
+    <li>This involves allocating RAM for data structures</li>
+    </ul>
+  </li>
   </ul>
 </li>
 <li>Free the RAM containing the file data</li>
@@ -110,7 +118,7 @@ Result is a <tt>Module</tt> struct with pointers to allocated memory.
 </div>
 
 <div class="slide">
-<h2>Code</h2>
+<h2>Code section</h2>
 
 <p>Just instructions, non-self-modifying</p>
 
@@ -173,13 +181,13 @@ WORD $0x00000000
 </div>
 
 <div class="slide">
-<h2>How to convert Dis files</h2>
+<h2>How to convert a Dis file?</h2>
 
 <ul>
-<li>There is already code to do this in the loader</li>
+<li>There is already code to read Dis files in <tt>libinterp/load.c</tt></li>
 <li>What do we put in the root file system?
   <ul>
-  <li>Could put just the code section for a Dis file in the kernel</li>
+  <li>Could put only the code section in the kernel</li>
   <li>Easier to put the whole file in the kernel</li>
   <li>Leave a placeholder in the root file system</li>
   </ul>
@@ -191,7 +199,16 @@ WORD $0x00000000
 
 <ul>
 <li>Use a different magic number</li>
-<li>Change the loader to do something different</li>
+<li>Change the loader to do something different in <tt>parsemod()</tt>:
+  <ul>
+  <li>Normal magic number?
+    <ul><li>Execute the function as normal</li></ul>
+  </li>
+  <li>New magic number?
+    <ul><li>Execute <tt>loadfrozen()</tt> instead (in <tt>libinterp/loadfrozen.c</tt>)</li></ul>
+  </li>
+  </ul>
+</li>
 </ul>
 </div>
 
@@ -204,7 +221,7 @@ WORD $0x00000000
 <li>Interpreter loads a placeholder file</li>
 <li></li>
 </ul>
-<p>Still need to tell
+<p>Still need to tell the interpreter where to find the frozen modules.</p>
 </div>
 
 <div class="slide">
@@ -214,3 +231,10 @@ WORD $0x00000000
 <li>Charles Forsyth for compiler hints and tips</li>
 <li>Michael Engel for discussions about microcontrollers</li>
 </ul>
+
+<p>Resources:</p>
+<ul>
+<li><a href="https://github.com/dboddie/inferno-os/tree/stm32f405">https://github.com/dboddie/inferno-os/tree/stm32f405</a></li>
+<li><a href="https://dboddie.gitlab.io/inferno-diary/"></li>
+</ul>
+</div>

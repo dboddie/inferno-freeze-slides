@@ -5,7 +5,7 @@ body {
 }
 
 h1 {
-    margin-bottom: 10pt;
+    margin-bottom: 5pt;
     font-family: Lato Semibold;
     font-weight: normal;
     font-size: 40pt;
@@ -28,8 +28,7 @@ h2 {
 }
 
 .author {
-    margin-top: 20pt;
-    font-size: 20pt;
+    margin-top: 10pt;
     text-align: center
 }
 
@@ -60,6 +59,12 @@ pre {
     @page {
         size: a4 landscape;
         margin: 0pt
+    }
+
+    .title-block {
+        position: absolute;
+        width: 100%;
+        top: 48%; left: 50%; transform: translate(-50%, -50%)
     }
 }
 
