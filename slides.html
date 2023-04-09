@@ -15,8 +15,10 @@
     </div>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>About me</h2>
+<h2 class="spacer4">About me</h2>
 
 <p>Background:</p>
 <ul>
@@ -32,8 +34,10 @@
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Context</h2>
+<h2 class="spacer6">Context</h2>
 
 <p>Small devices:</p>
 
@@ -41,17 +45,21 @@
 <li>Some flash memory, not much RAM</li>
 <li>Examples:
   <ul>
-  <li><a href="https://www.st.com/en/microcontrollers-microprocessors/stm32f405-415.html">STM32F405</a> &ndash; Cortex-M4</li>
-  <li><a href="https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html">RP2040</a> &ndash; Cortex-M0+</li>
+  <li><a href="https://www.st.com/en/microcontrollers-microprocessors/stm32f405-415.html">STM32F405</a> &ndash; Cortex-M4, 192 KB RAM, 1 MB flash</li>
+  <li><a href="https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html">RP2040</a> &ndash; Cortex-M0+, 264 KB RAM</li>
   </ul>
 </li>
 <li>Both use the Thumb-2 instruction set</li>
 </ul>
-<p>We'll talk about the STM32 MCU.</p>
+<p>I'm using the STM32 MCU.</p>
+
+<p>See <a href="https://github.com/caerwynj/inferno-os/tree/pico">caerwynj/inferno-os</a> for Inferno on RP2040.</p>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Building Inferno on STM32</h2>
+<h2 class="spacer6">Building Inferno on STM32</h2>
 
 <p>Toolchain for Thumb instructions:</p>
 <ul>
@@ -66,8 +74,10 @@
 <li><a href="https://dboddie.gitlab.io/inferno-diary/2022-01-30.html">More Thumb Compiler Notes</a></li></ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Problems</h2>
+<h2 class="spacer6">Problems</h2>
 
 <p>Two issues:</p>
 <ol>
@@ -87,8 +97,10 @@
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Limbo modules</h2>
+<h2 class="spacer4">Limbo modules</h2>
 
 <p>Dis files contain features like these:</p>
 <ul>
@@ -104,31 +116,34 @@
 <p>See the <a href="https://inferno-os.org/inferno/man/6/dis.html">Dis object file</a> man page.</p>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Loading Limbo modules</h2>
+<h2 class="spacer8">Loading Limbo modules</h2>
 
 <ul>
 <li><tt>readmod()</tt> in <tt>libinterp/readmod.c</tt>:
   <ul>
-  <li>Allocate RAM for the contents of a Dis file</li>
+  <li>Allocates RAM for the contents of a Dis file</li>
   <li><tt>parsemod()</tt> in <tt>libinterp/load.c</tt>:
     <ul>
-    <li>Decode each section of the file
+    <li>Decodes each section of the file
     <li>This involves allocating RAM for data structures</li>
     </ul>
   </li>
   </ul>
 </li>
-<li>Free the RAM containing the file data</li>
+<li>Frees the RAM containing the file data</li>
 </ul>
 
 Result is a <tt>Module</tt> struct with pointers to allocated memory.
 </div>
 
-<div class="slide">
-<h2>Code section</h2>
+<!-- ---------------------------------------------------------------- -->
 
-<div class="spacer"></div>
+<div class="slide">
+<h2 class="spacer8">Code section</h2>
+
 <p>Just instructions, non-self-modifying:</p>
 
 <pre>
@@ -142,8 +157,10 @@ ret
 <p>Why not move them into flash memory?</p>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Why not move them into flash memory?</h2>
+<h2 class="spacer4">Why not move them into flash memory?</h2>
 
 <p>Decoding the Dis file expands the instructions.</p>
 
@@ -163,10 +180,11 @@ ret
 </ul>
 </div>
 
-<div class="slide">
-<h2>Practical problems</h2>
+<!-- ---------------------------------------------------------------- -->
 
-<div class="spacer-large"></div>
+<div class="slide">
+<h2 class="spacer16">Practical problems</h2>
+
 <ul>
 <li>How to freeze Dis files?</li>
 <li>How does the interpreter know which files are frozen?</li>
@@ -174,6 +192,8 @@ ret
 <li>How do we automate this?</li>
 </ul>
 </div>
+
+<!-- ---------------------------------------------------------------- -->
 
 <div class="slide">
 <h2>How to freeze a Dis file?</h2>
@@ -204,10 +224,11 @@ ret
 
 </div>
 
-<div class="slide">
-<h2>Which files are frozen and which are normal?</h2>
+<!-- ---------------------------------------------------------------- -->
 
-<div class="spacer"></div>
+<div class="slide">
+<h2 class="spacer8">Which files are frozen and which are normal?</h2>
+
 <ul>
 <li>Use a different magic number and a token to identify the frozen module</li>
 <li>Change the loader to do something different in <tt>parsemod()</tt>:
@@ -226,8 +247,10 @@ ret
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Finding frozen modules</h2>
+<h2 class="spacer4">Finding frozen modules</h2>
 
 <p>We have:</p>
 <ul>
@@ -248,8 +271,10 @@ ret
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Missing pieces</h2>
+<h2 class="spacer6">Missing pieces</h2>
 
 <p>We need to initialize the linked list of frozen modules:</p>
 <ul>
@@ -266,8 +291,10 @@ ret
 <p>Let's do both of these together.</p>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Registering frozen modules</h2>
+<h2 class="spacer4">Registering frozen modules</h2>
 
 <p>The configuration file (<tt>stm32f405.conf</tt>) contains a <tt>root</tt>
 section with entries like this:</p>
@@ -288,8 +315,10 @@ section with entries like this:</p>
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Registering frozen modules</h2>
+<h2 class="spacer4">Registering frozen modules</h2>
 
 <p>At run-time:</p>
 <ul>
@@ -309,24 +338,128 @@ section with entries like this:</p>
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
 <h2>Summary</h2>
 
-<p>To freeze a module:</p>
-
 <ul>
-<li>Add a line to the <tt>root</tt> section of the configuration file</li>
-<li>Make sure you add an <tt>.fdis</tt> source</li>
-<li>
+<li>A frozen module is like a normal Dis file
+  <ul>
+  <li>but with different magic number</li>
+  <li>and expanded code section</li>
+  </ul>
+</li>
+<li>A placeholder file refers to a frozen module
+  <ul>
+  <li>using a token (basically just the original path)</li>
+  </ul>
+</li>
+<li>The interpreter
+  <ul>
+  <li>checks for the new magic number</li>
+  <li>uses the token to look up the frozen module data</li>
+  <li>loads it differently (no need to unpack code)</li>
+  </ul>
+</li>
+<li>The build system</li>
+  <ul>
+  <li>finds frozen module declarations in the configuration file</li>
+  <li>creates frozen module data</li>
+  <li>generates code to register frozen modules at run-time</li>
+  </ul>
+</li>
 </ul>
 </div>
 
+<!-- ---------------------------------------------------------------- -->
+
 <div class="slide">
-<h2>Thanks</h2>
+<h2>Caveats</h2>
+
+<p>Code itself read-only, but...</p>
+<ul>
+<li>Sometimes assumed to be in allocated memory
+  <ul>
+  <li><tt>freemod()</tt> function in <tt>libinterp/load.c</tt></li>
+  <li><tt>devprog</tt> file system &ndash; <tt>ps</tt> breaks...</li>
+  </ul>
+</li>
+<li>Also file systems like <tt>devprog</tt>
+<li>Introduce a <tt>frozen</tt> flag in the <tt>Module</tt></li> struct
+</ul>
+
+<p>Frozen modules not completely frozen.</p>
+<ul>
+<li>All the other sections still need RAM</li>
+<li>Takes time to track down uses of these sections</li>
+</ul>
+</div>
+
+<!-- ---------------------------------------------------------------- -->
+
+<div class="slide">
+<h2 class="spacer8">Benefits</h2>
+
+<p>Reduced allocation overhead:</p>
+
+<ul>
+<li>No need to allocate RAM to load a Dis file</li>
+<li>Less RAM used for instructions, especially for big modules</li>
+</ul>
+
+<p>Indirect benefits:</p>
+
+<ul>
+<li>Less RAM used for root file system</li>
+<li>A lot of that could/should be in flash anyway</li>
+<li>Compiler changes?</li>
+</ul>
+
+</div>
+
+<!-- ---------------------------------------------------------------- -->
+
+<div class="slide">
+<h2 class="spacer4">What's next?</h2>
+
+<ul>
+<li>Make the linker's <tt>-t</tt> option work
+  <ul>
+  <li>Puts some strings in the text section of the kernel</li>
+  <li>Already done, saves a few kilobytes</li>
+  </ul>
+</li>
+<li>Move more constant data into the kernel's text section
+  <ul>
+  <li>Early days, slow progress</li>
+  </ul>
+</li>
+<li>Use a different toolchain to build kernels?
+  <ul>
+  <li>Like Inferno on RP2040</li>
+  </ul>
+</li>
+<li>Compile to native code instead of just expanding Dis code
+  <ul>
+  <li>Could be expensive in terms of flash memory</li>
+  <li>Not looked into feasibility</li>
+  <li>Will no doubt require attention to allocation issues</li>
+  </ul>
+</li>
+</ul>
+
+</div>
+
+<!-- ---------------------------------------------------------------- -->
+
+<div class="slide">
+<h2 class="spacer8">Thanks</h2>
 
 <ul>
 <li>Charles Forsyth for compiler hints and tips</li>
 <li>Michael Engel for discussions about microcontrollers</li>
+<li>inferno-os and 9fans participants</li>
 </ul>
 
 <p>Resources:</p>

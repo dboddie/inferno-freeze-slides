@@ -17,7 +17,27 @@ h2 {
     font-family: Lato Semibold;
     font-weight: normal;
     text-align: center;
-    padding-bottom: 5%
+    padding-bottom: 2%
+}
+
+h2.spacer4 {
+    padding-bottom: 4%
+}
+
+h2.spacer6 {
+    padding-bottom: 6%
+}
+
+h2.spacer8 {
+    padding-bottom: 8%
+}
+
+h2.spacer10 {
+    padding-bottom: 10%
+}
+
+h2.spacer16 {
+    padding-bottom: 16%
 }
 
 .subtitle {
@@ -36,18 +56,6 @@ h2 {
 .slide {
     padding: 20pt 44pt 20pt 44pt;
     break-after: page;
-}
-
-.spacer {
-    padding-bottom: 24pt
-}
-
-.spacer-medium {
-    padding-bottom: 44pt
-}
-
-.spacer-large {
-    padding-bottom: 64pt
 }
 
 tt {
