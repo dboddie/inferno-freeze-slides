@@ -16,7 +16,8 @@ h2 {
     font-size: 28pt;
     font-family: Lato Semibold;
     font-weight: normal;
-    text-align: center
+    text-align: center;
+    padding-bottom: 5%
 }
 
 .subtitle {
@@ -37,6 +38,18 @@ h2 {
     break-after: page;
 }
 
+.spacer {
+    padding-bottom: 24pt
+}
+
+.spacer-medium {
+    padding-bottom: 44pt
+}
+
+.spacer-large {
+    padding-bottom: 64pt
+}
+
 tt {
     padding: 2pt;
     font-family: Noto Mono;
@@ -52,7 +65,15 @@ pre {
     font-size: 0.8em;
     background-color: white;
     margin: 0 20pt 0 20pt;
-    padding: 5pt 10pt 5pt 10pt
+    padding: 5pt 10pt 5pt 10pt;
+    border: 1pt solid #c0c0c0
+}
+
+li {
+    margin-bottom: 4pt
+}
+ul {
+    margin-top: 4pt
 }
 
 @media print {
@@ -70,6 +91,7 @@ pre {
 
 @media screen {
     .slide {
-        border-top: 1px solid #808080
+        border-top: 1px solid #808080;
+        height: 100%
     }
 }

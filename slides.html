@@ -26,7 +26,7 @@
 
 <p>Interest in Inferno:</p>
 <ul>
-<li>Interested from a historical perspective</li>
+<li>Interested from a computing history perspective</li>
 <li>Then wanted to try using something other than Linux</li>
 <li>Now mostly trying to port Inferno to different devices</li>
 </ul>
@@ -51,17 +51,23 @@
 </div>
 
 <div class="slide">
-<h2>Aside</h2>
+<h2>Building Inferno on STM32</h2>
 
+<p>Toolchain for Thumb instructions:</p>
 <ul>
 <li>Compiler: <tt>tc</tt>
 <li>Assembler: <tt>5a</tt>
 <li>Linker: <tt>tl</tt></li>
 </ul>
+
+<p>References:</p>
+<ul>
+<li><a href="https://dboddie.gitlab.io/inferno-diary/2022-01-29.html">Notes on the Inferno Thumb Compiler</a></li>
+<li><a href="https://dboddie.gitlab.io/inferno-diary/2022-01-30.html">More Thumb Compiler Notes</a></li></ul>
 </div>
 
 <div class="slide">
-<h2>Problem</h2>
+<h2>Problems</h2>
 
 <p>Two issues:</p>
 <ol>
@@ -74,7 +80,7 @@
 <li>Not much we can do about issue 1
   <ul>
   <li>Modify the compiler and linker</li>
-  <li>Use a custom allocator?</li>
+  <li>Use a <a href="https://8e.iwp9.org/sunspot.pdf">custom allocator</a>?</li>
   </ul>
 </li>
 <li>Issue 2 might be worth exploring</li>
@@ -84,7 +90,7 @@
 <div class="slide">
 <h2>Limbo modules</h2>
 
-Dis files contain
+<p>Dis files contain features like these:</p>
 <ul>
 <li>Magic number</li>
 <li>Code</li>
@@ -94,6 +100,8 @@ Dis files contain
 <li>Imports</li>
 <li>Handlers</li>
 </ul>
+
+<p>See the <a href="https://inferno-os.org/inferno/man/6/dis.html">Dis object file</a> man page.</p>
 </div>
 
 <div class="slide">
@@ -120,7 +128,8 @@ Result is a <tt>Module</tt> struct with pointers to allocated memory.
 <div class="slide">
 <h2>Code section</h2>
 
-<p>Just instructions, non-self-modifying</p>
+<div class="spacer"></div>
+<p>Just instructions, non-self-modifying:</p>
 
 <pre>
 ; disdump dis/pause.dis
@@ -136,76 +145,81 @@ ret
 <div class="slide">
 <h2>Why not move them into flash memory?</h2>
 
-<p>Decoding the Dis file expands the instructions</p>
+<p>Decoding the Dis file expands the instructions.</p>
 
 <ul>
-<li>So need to expand them at compile-time (or convert them later)</li>
-<li>Then compile them into the kernel as read-only data</li>
+<li>So need to expand them at kernel compile-time</li>
+<li>Compile them into the kernel as read-only data (<em>&ldquo;freeze&rdquo;</em> them)</li>
+<li>Then just point the interpreter at them</li>
 </ul>
 
-<!-- pre
-TEXT _dis_pause_inst(SB), 0, $-4
-// 13 59 0000 00000000 0000002c
-WORD $0x00005913
-WORD $0x00000000
-WORD $0x0000002c
-// 19 09 0000 0000002c 00000028
-WORD $0x00000919
-WORD $0x0000002c
-WORD $0x00000028
-// 29 01 0000 00000000 0000002c
-WORD $0x00000129
-WORD $0x00000000
-WORD $0x0000002c
-// 0c 1b 0000 00000000 00000000
-WORD $0x00001b0c
-WORD $0x00000000
-WORD $0x00000000
-/pre -->
-
-<p>The loader patches the instructions as it creates <tt>Inst</tt> structures</p>
+<p>The interpreter normally patches instructions at run-time.</p>
 
 <ul>
-<li>The compiler can't know where the Inst structures will be in memory at run-time</li>
+<li>It creates <tt>Inst</tt> structures and patches branches</li>
+<li>The compiler can't know where each <tt>Inst</tt> will be at run-time</li>
 <li>But we can decide where in flash memory to put them</li>
+<li>So we can patch the instructions ourselves at kernel compile-time</li>
 </ul>
 </div>
 
 <div class="slide">
-<h2>Two practical problems</h2>
+<h2>Practical problems</h2>
 
+<div class="spacer-large"></div>
 <ul>
-<li>How to convert Dis files?</li>
-<li>How to tell the interpreter which files are "frozen" and which are normal?</li>
+<li>How to freeze Dis files?</li>
+<li>How does the interpreter know which files are frozen?</li>
+<li>How does the interpreter find frozen modules?</li>
+<li>How do we automate this?</li>
 </ul>
 </div>
 
 <div class="slide">
-<h2>How to convert a Dis file?</h2>
+<h2>How to freeze a Dis file?</h2>
 
 <ul>
-<li>There is already code to read Dis files in <tt>libinterp/load.c</tt></li>
-<li>What do we put in the root file system?
+<li>There is already code to read Dis files in <tt>libinterp/load.c</tt>
+  <ul>
+  <li>Create a <tt>freeze</tt> tool and borrow existing code</li>
+  <li>Expand Dis code and compile it into the kernel</li>
+  </ul>
+</li>
+<li>What do we put in the root file system instead of the original file?
   <ul>
   <li>Could put only the code section in the kernel</li>
   <li>Easier to put the whole file in the kernel</li>
   <li>Leave a placeholder in the root file system</li>
   </ul>
 </ul>
+
+<pre>
+; xd dis/pause.fdis
+0000000 c000fd15 2f646973 2f706175 73652e64
+0000010 69730000
+0000013
+; cat dis/pause.fdis
+��/dis/pause.dis;
+</pre>
+
 </div>
 
 <div class="slide">
-<h2>Which files are "frozen" and which are normal?</h2>
+<h2>Which files are frozen and which are normal?</h2>
 
+<div class="spacer"></div>
 <ul>
-<li>Use a different magic number</li>
+<li>Use a different magic number and a token to identify the frozen module</li>
 <li>Change the loader to do something different in <tt>parsemod()</tt>:
   <ul>
   <li>Normal magic number?
     <ul><li>Execute the function as normal</li></ul>
   </li>
   <li>New magic number?
-    <ul><li>Execute <tt>loadfrozen()</tt> instead (in <tt>libinterp/loadfrozen.c</tt>)</li></ul>
+    <ul>
+    <li>Execute <tt>loadfrozen()</tt> instead</li>
+    <li>A new function in <tt>libinterp/loadfrozen.c</tt></li>
+    </ul>
   </li>
   </ul>
 </li>
@@ -213,15 +227,98 @@ WORD $0x00000000
 </div>
 
 <div class="slide">
-<h2>Glue</h2>
+<h2>Finding frozen modules</h2>
 
+<p>We have:</p>
 <ul>
 <li>Converted Dis files in the kernel</li>
 <li>Placeholder files in the root file system</li>
-<li>Interpreter loads a placeholder file</li>
-<li></li>
 </ul>
-<p>Still need to tell the interpreter where to find the frozen modules.</p>
+
+<p>Interpreter loads a placeholder file:</p>
+<ul>
+<li>Checks for the new magic number and reads the token</li>
+<li>Searches a linked list of structs to find the matching token and data</li>
+<li>Calls the <tt>_loadfrozen()</tt> function
+  <ul>
+  <li>Does what <tt>parsemod()</tt> normally does</li>
+  <li>Except that the code is already unpacked and ready to use</li>
+  </ul>
+</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Missing pieces</h2>
+
+<p>We need to initialize the linked list of frozen modules:</p>
+<ul>
+<li>Implement <tt>addfrozenmod()</tt> to register frozen modules</li>
+<li>A new function in <tt>libinterp/loadfrozen.c</tt></li>
+</ul>
+
+<p>Still need to:</p>
+<ul>
+<li>Describe all the frozen modules</li>
+<li>Register them when the kernel starts</li>
+</ul>
+
+<p>Let's do both of these together.</p>
+</div>
+
+<div class="slide">
+<h2>Registering frozen modules</h2>
+
+<p>The configuration file (<tt>stm32f405.conf</tt>) contains a <tt>root</tt>
+section with entries like this:</p>
+<pre>
+    /dis/pause.dis  /dis/pause.fdis
+</pre>
+
+<p>In the <tt>mkfile</tt>:</p>
+<ul>
+<li><tt>mkfrozen</tt> finds <tt>.fdis</tt> entries in the configuration file
+  <ul>
+  <li>Runs <tt>freeze</tt> on the corresponding <tt>.dis</tt> files</li>
+  <li>Creates a <tt>frozen.h</tt> file with calls to register modules</li>
+  <li>This is included by <tt>frozen.c</tt> in <tt>initfrozen()</tt>
+  </ul>
+</li>
+<li><tt>listfrozen</tt> creates a build rule for the frozen modules</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Registering frozen modules</h2>
+
+<p>At run-time:</p>
+<ul>
+<li><tt>main()</tt> calls <tt>initfrozen()</tt></li>
+<li>Calls <tt>addfrozenmod()</tt> for each frozen module
+  <ul>
+  <li>Thanks to the macro in the generated <tt>frozen.h</tt> file</li>
+  </ul>
+</li>
+</ul>
+
+<p>The interpreter has a linked list of frozen modules, so:
+<ul>
+<li>It can load a placeholder file</li>
+<li>Check the magic number</li>
+<li>Look up the token to find frozen module data</li>
+</ul>
+</div>
+
+<div class="slide">
+<h2>Summary</h2>
+
+<p>To freeze a module:</p>
+
+<ul>
+<li>Add a line to the <tt>root</tt> section of the configuration file</li>
+<li>Make sure you add an <tt>.fdis</tt> source</li>
+<li>
+</ul>
 </div>
 
 <div class="slide">
@@ -235,6 +332,6 @@ WORD $0x00000000
 <p>Resources:</p>
 <ul>
 <li><a href="https://github.com/dboddie/inferno-os/tree/stm32f405">https://github.com/dboddie/inferno-os/tree/stm32f405</a></li>
-<li><a href="https://dboddie.gitlab.io/inferno-diary/"></li>
+<li><a href="https://dboddie.gitlab.io/inferno-diary">https://dboddie.gitlab.io/inferno-diary</a></li>
 </ul>
 </div>
