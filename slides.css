@@ -58,6 +58,16 @@ h2.spacer16 {
     break-after: page;
 }
 
+.footer
+{
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom: 1em;
+    left: 50%;
+    transform: translate(-50%, 0)
+}
+
 tt {
     padding: 2pt;
     font-family: Noto Mono;
@@ -93,7 +103,7 @@ ul {
     .title-block {
         position: absolute;
         width: 100%;
-        top: 48%; left: 50%; transform: translate(-50%, -50%)
+        top: 45%; left: 50%; transform: translate(-50%, -50%)
     }
 }
 
