@@ -1,7 +1,7 @@
 .\" Disable page numbers in the ms macros.
 .ds CH
 .nr PS 9
-.fam P
+.fam LUXS
 .ps 11
 .ce 9999
 .B "Hell Freezes Over:"
@@ -163,7 +163,7 @@ It may be possible to extend the technique to compile virtual machine code to na
 The source code associated with this paper can be found in the following repository:
 .br
 .I https://github.com/dboddie/inferno-os/tree/stm32f405
-.
+
 .SH
 References
 .IP 1.
@@ -196,7 +196,7 @@ Vita Nuova, ``Inferno Ports: Hosted and Native'',
 .I https://www.vitanuova.com/inferno/papers/port.pdf
 .
 .IP 4.
-Salva Peiró, ``Inferno DS: Inferno port to the Nintendo DS'',
+Salva Peirï¿½, ``Inferno DS: Inferno port to the Nintendo DS'',
 .I "3\*{rd\*} International Workshop on Plan 9" ,
 University of Thessaly, Volos, Greece, 2008
 .br
